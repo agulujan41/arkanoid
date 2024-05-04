@@ -1,5 +1,5 @@
 import pygame
-
+pygame.init()
 #creamos ventana
 color_fondo = (200,255,255)
 ventana = pygame.display.set_mode((500,500))
@@ -12,6 +12,7 @@ AMARILLO = (255,255,0)
 AZUL_OSCURO = (0,0,100)
 AZUL = (80,80,255)
 NEGRO = (0,0,0)
+BLANCO = (255,255,255)
 VERDE = (0,255,0)
 ROJO = (255,0,0)
 
@@ -34,7 +35,13 @@ class Rectangulo():
     #rectangulos
     def estaChocandoRectangulo(self,otroRectangulo):
         return self.rect.colliderect(otroRectangulo)
-
+class Etiqueta(Rectangulo):
+    def cambiarTexto(self,texto,tamanioLetra=12,colorTexto=(0,0,0)):
+        self.image = pygame.font.SysFont('verdana',tamanioLetra).render(texto,True,colorTexto)
+    def escribir(self,direccionX,direccionY):
+        self.rellenar()
+        ventana.blit(self.image,(self.rect.x+direccionX,self.rect.y +direccionY))
+    
 class Imagen(Rectangulo):
     def __init__(self,nombreArchivo, x, y, ancho, alto):
         super().__init__(x, y, ancho, alto)
@@ -68,6 +75,15 @@ plataforma = Imagen("plataforma.png",plataforma_x,plataforma_y,100,30)
 
 aumentarPelotaX = 5
 aumentarPelotaY = 5
+
+def pantallaFinal():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        
+        pygame.display.update()
 
 while not gameover:
     plataforma.rellenar()
@@ -111,6 +127,29 @@ while not gameover:
     
     if pelota.estaChocandoRectangulo(plataforma.rect):
         aumentarPelotaY*=-1
+    
+    for enemigo in enemigos:
+
+        if pelota.estaChocandoRectangulo(enemigo.rect):
+            aumentarPelotaY*=-1
+            enemigos.remove(enemigo)
+            enemigo.rellenar()
+            
+    #comprobacion del juego
+    if pelota.rect.y > 345:
+        etiqueta = Etiqueta(0,0,500,500)
+        etiqueta.color(ROJO)
+        etiqueta.cambiarTexto('PERDISTE',60,BLANCO)
+        etiqueta.escribir(100,200)
+        gameover = True
+        pantallaFinal()
+    if len(enemigos) == 0:
+        etiqueta = Etiqueta(0,0,500,500)
+        etiqueta.color(VERDE)
+        etiqueta.cambiarTexto('GANASTE',60,NEGRO)
+        etiqueta.escribir(100,200)
+        gameover = True
+        pantallaFinal()
     for enemigo in enemigos:
         enemigo.dibujar()
     pelota.dibujar()
